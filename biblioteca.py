@@ -129,6 +129,60 @@ def editar_usuario(id_usuario):
     usuario.save()
     return jsonify({"mensagem": "usuario editado com sucesso"})
 
+@app.route("/editar_livro/<int:id_livro>", methods=['PUT'])
+def editar_livro(id_livro):
+    livro = db_session.execute(select(Livro).where(Livro.id_livro == id_livro)).scalar()
+
+    if livro is None:
+        return jsonify({"mensagem": "Livro nõo encontrado"})
+
+    dados_livro = request.get_json()
+    ISBN = dados_livro['ISBN']
+    titulo = dados_livro['Titulo']
+    autor = dados_livro['Autor']
+    resumo = dados_livro['Resumo']
+
+    livro.ISBN = ISBN
+    livro.Titulo = titulo
+    livro.Autor = autor
+    livro.Resumo = resumo
+
+    livro.save()
+    return jsonify({"mensagem": "livro editado com sucesso"})
+
+@app.route("/editar_emprestimo/<int:id_emprestimo>", methods=['PUT'])
+def editar_emprestimo(id_emprestimo):
+    emprestimo = db_session.execute(select(Emprestimo).where(Livro.id_livro == id_emprestimo)).scalar()
+
+    if emprestimo is None:
+        return jsonify({"mensagem": "Usuario nõo encontrado"})
+
+    dados_emprestimo = request.get_json()
+    datas_emprestimo = dados_emprestimo['Data_Emprestimo']
+    data_devolucao = dados_emprestimo['Data_Devolucao']
+    id_livro = dados_emprestimo['id_livro']
+    id_usuario = dados_emprestimo['id_usuario']
+
+    emprestimo.Data_Emprestimo = datas_emprestimo
+    emprestimo.Data_Devolucao = data_devolucao
+    emprestimo.id_livro = id_livro
+    emprestimo.id_usuario = id_usuario
+
+    emprestimo.save()
+    return jsonify({"mensagem": "emprestimo nõo encontrado"})
+
+@app.route("/deletar_usuario/<int:id_usuario>", methods=['DELETE'])
+def deletar_usuario(id_usuario):
+    try:
+        usuario = db_session.query(Usuario).get(id_usuario)
+        if not usuario:
+            return jsonify({"message": "Usuário não encontrado"}), 404
+
+        db_session.delete(usuario)
+        db_session.commit()
+        return jsonify({"message": "Usuário excluído com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"message": f"Erro ao excluir usuário: {str(e)}"}), 500
 
 
 
