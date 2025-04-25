@@ -113,7 +113,6 @@ def editar_usuario(id_usuario):
         if not dados_usuario:
             return jsonify({"message": "Nenhum dado fornecido para atualização"}), 400
 
-        # Atualiza apenas os campos fornecidos
         if "Nome" in dados_usuario:
             usuario.Nome = dados_usuario["Nome"]
         if "cpf" in dados_usuario:

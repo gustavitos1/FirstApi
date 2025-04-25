@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from sqlalchemy import Select
+from sqlalchemy import Select, select
 from models import *
 from flask_pydantic_spec import FlaskPydanticSpec
 
@@ -17,20 +17,20 @@ def index():
 def cadastrar_usuario():
     try:
         dados_usuario = request.get_json()
-        if not "Nome" in dados_usuario or not "cpf" in dados_usuario or not "Endereco" in dados_usuario:
-            return jsonify({"preencher os campos necessarios"})
-
-        else:
-            form_evento = Usuario(
-                cpf=request.form['form.cpf'],
-                Nome=request.form['form.Nome'],
-                Endereco=request.form['form.Endereco']
-            )
-            db_session.add(form_evento)
-            db_session.commit()
-            return jsonify({"usuario cadastrado com sucesso"})
+        nome = dados_usuario['Nome']
+        cpf = dados_usuario['CPF']
+        endereco = dados_usuario['Endereco']
+        if nome not in dados_usuario and cpf not in dados_usuario and endereco not in dados_usuario:
+            return jsonify({"mensagem": "Preencha todos os campos"})
+        form_evento = Usuario(
+            cpf=cpf,
+            Nome=nome,
+            Endereco=endereco
+        )
+        form_evento.save()
+        return jsonify({"mensagem": "usuario cadastrado com sucesso"})
     except TypeError:
-        return jsonify({"Resultado Invalido"})
+        return jsonify({"mensagem": "Resultado Invalido"})
 
 @app.route("/cadastrar_livro", methods=['POST'])
 def cadastrar_livro():
@@ -40,6 +40,8 @@ def cadastrar_livro():
         titulo = dados_livro['Titulo']
         autor = dados_livro['Autor']
         resumo = dados_livro['Resumo']
+        if ISBN not in dados_livro and titulo not in dados_livro and autor not in dados_livro and resumo not in dados_livro:
+            return jsonify({"mensagem": "Preencha todos os campos"})
 
         form_evento = Livro(
                 ISBN=ISBN,
@@ -55,21 +57,23 @@ def cadastrar_livro():
 @app.route("/cadastrar_emprestimo", methods=['POST'])
 def cadastrar_emprestimo():
     try:
-        if request.method == 'POST':
-            if not request.form['form.Data_Emprestimo'] or not request.form['form.Data_Devolucao'] or not request.form['form.id_livro']:
-                return jsonify({"preencher os campos necessarios"})
-            else:
-                form_evento = Emprestimo(
-                    Data_Emprestimo=request.form['form.Data_Emprestimo'],
-                    Data_Devolucao=request.form['form.Data_Devolucao'],
-                    id_livro=request.form['form.id_livro'],
-                    id_usuario=request.form['form.id_usuario']
+        dados_emprestimo = request.get_json()
+        data_emprestimo = dados_emprestimo['Data_Emprestimo']
+        data_devolucao = dados_emprestimo['Data_Devolucao']
+        id_usuario = dados_emprestimo['id_usuario']
+        id_livro = dados_emprestimo['id_livro']
+        if data_emprestimo not in dados_emprestimo and data_devolucao not in dados_emprestimo and id_usuario not in dados_emprestimo and id_livro not in dados_emprestimo:
+            return jsonify({"mensagem": "Preencha todos os campos"})
+        form_evento = Emprestimo(
+                    Data_Emprestimo=data_emprestimo,
+                    Data_Devolucao=data_devolucao,
+                    id_livro=id_livro,
+                    id_usuario=id_usuario
                 )
-                db_session.add(form_evento)
-                db_session.commit()
-                return jsonify({"emprestimo cadastrado com sucesso"})
+        form_evento.save()
+        return jsonify({"mensagem": "emprestimo cadastrado com sucesso"})
     except TypeError:
-        return jsonify({"Resultado Invalido"})
+        return jsonify({"mensagem": "Resultado Invalido"})
 
 
 
@@ -95,7 +99,7 @@ def usuarios():
     print(resultado)
     return jsonify(resultado), 200
 
-@app.route("/emprestimos>", methods=['GET'])
+@app.route("/emprestimos", methods=['GET'])
 def emprestimos():
     sql_emprestimos = Select(Emprestimo)
     lista_emprestimos = db_session.execute(sql_emprestimos).scalars().all()
@@ -106,20 +110,25 @@ def emprestimos():
     print(resultado)
     return jsonify(resultado), 200
 
-# @app.route("/editar_usuario/<int:id_usuario>", methods=['GET','POST'])
-# def editar_usuario():
-#     usuario = db_session.query(Usuario).filter(Usuario.id_usuario == request.form['form.id_usuario']).first()
-#
-#     if not usuario:
-#         return jsonify({"Usuario nõo encontrado"})
-#
-#     if request.method == 'POST':
-#         usuario.nome = request.form['form.nome']
-#         usuario.cpf = request.form['form.cpf']
-#         usuario.Endereco = request.form['form.Endereco']
-#
-#     db_session.commit()
-#     return jsonify(usuario.serialize())
+@app.route("/editar_usuario/<int:id_usuario>", methods=['PUT'])
+def editar_usuario(id_usuario):
+    usuario = db_session.execute(select(Usuario).where(Usuario.id_usuario == id_usuario)).scalar()
+
+    if usuario is None:
+        return jsonify({"mensagem": "Usuario nõo encontrado"})
+
+    dados_usuario = request.get_json()
+    nome = dados_usuario['Nome']
+    cpf = dados_usuario['CPF']
+    Endereco = dados_usuario['Endereco']
+
+    usuario.Nome = nome
+    usuario.cpf = cpf
+    usuario.Endereco = Endereco
+
+    usuario.save()
+    return jsonify({"mensagem": "usuario editado com sucesso"})
+
 
 
 
