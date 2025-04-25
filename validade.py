@@ -8,7 +8,6 @@ app = Flask(__name__)
 # Documentação OpenAPI
 spec = FlaskPydanticSpec('flask', title='API Validade de Produtos', version='1.0.0')
 spec.register(app)
-
 @app.route('/')
 def index():
     return 'mencione uma data de cadastro de produtos para determinar a validade'
