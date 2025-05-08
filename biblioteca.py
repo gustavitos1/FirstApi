@@ -15,6 +15,23 @@ def index():
 
 @app.route("/cadastrar_usuario", methods=['POST'])
 def cadastrar_usuario():
+    """
+    Cadastrar Usuario
+
+    Endpoint:
+    POST /cadastrar_usuario
+
+    Parameters:
+    none
+
+    resposta JSON:
+    {
+        "nome": douglas,
+        "cpf": 128202523,
+        "endereco": Rua cabral
+    }
+    :return:
+    """
     try:
         dados_usuario = request.get_json()
         nome = dados_usuario['Nome']
@@ -34,6 +51,24 @@ def cadastrar_usuario():
 
 @app.route("/cadastrar_livro", methods=['POST'])
 def cadastrar_livro():
+    """
+    Cadastrar Livro
+
+    Endpoint:
+    POST /cadastrar_livro
+
+    parametros:
+    none
+
+    resposta JSON:
+    {
+        "ISBN": douglas,
+        "titulo": A arte da guerra,
+        "autor": Sun Tzu,
+        "resumo": dicas de guerra para a vida,
+    }
+    :return:
+    """
     try:
         dados_livro = request.get_json()
         ISBN = dados_livro['ISBN']
@@ -56,6 +91,24 @@ def cadastrar_livro():
 
 @app.route("/cadastrar_emprestimo", methods=['POST'])
 def cadastrar_emprestimo():
+    """
+    Cadastrar Emprestimo
+
+    Endpoint:
+    POST /cadastrar_emprestimo
+
+    parametros:
+    none
+
+    resposta JSON:
+    {
+        "data_emprestimo": 12/04/2020,
+        "data_devolucao": 27/04/2020,
+        "id_usuario": 1,
+        "id_livro": 2,
+    }
+    :return:
+    """
     try:
         dados_emprestimo = request.get_json()
         data_emprestimo = dados_emprestimo['Data_Emprestimo']
@@ -79,6 +132,19 @@ def cadastrar_emprestimo():
 
 @app.route("/livros", methods=['GET'])
 def livros():
+    """
+    Listar Livros
+
+    Endpoint:
+    GET /livros
+
+    parametros:
+    none
+
+    resposta JSON:
+
+    :return:
+    """
     sql_livros = Select(Livro)
     lista_livros = db_session.execute(sql_livros).scalars().all()
     print(lista_livros)
@@ -90,6 +156,19 @@ def livros():
 
 @app.route("/usuarios", methods=['GET'])
 def usuarios():
+    """
+    listar Usuarios
+
+    Endpoint:
+    GET /usuarios
+
+    parametros:
+    none
+
+    resposta JSON:
+
+    :return:
+    """
     sql_usuarios = Select(Usuario)
     lista_usuarios = db_session.execute(sql_usuarios).scalars().all()
     print(lista_usuarios)
@@ -101,6 +180,19 @@ def usuarios():
 
 @app.route("/emprestimos", methods=['GET'])
 def emprestimos():
+    """
+    listar Emprestimos
+
+    Endpoint:
+    GET /emprestimos
+
+    parametros:
+    none
+
+    resposta JSON:
+
+    :return:
+    """
     sql_emprestimos = Select(Emprestimo)
     lista_emprestimos = db_session.execute(sql_emprestimos).scalars().all()
     print(lista_emprestimos)
@@ -112,6 +204,20 @@ def emprestimos():
 
 @app.route("/editar_usuario/<int:id_usuario>", methods=['PUT'])
 def editar_usuario(id_usuario):
+    """
+    Editar Usuario
+
+    Endpoint:
+    PUT /editar_usuario/<id_usuario>
+
+    parametros:
+    id_usuario
+
+    resposta JSON:
+
+    :param id_usuario:
+    :return:
+    """
     usuario = db_session.execute(select(Usuario).where(Usuario.id_usuario == id_usuario)).scalar()
 
     if usuario is None:
@@ -131,6 +237,20 @@ def editar_usuario(id_usuario):
 
 @app.route("/editar_livro/<int:id_livro>", methods=['PUT'])
 def editar_livro(id_livro):
+    """
+    Editar Livro
+
+    Endpoint:
+    PUT /editar_livro/<id_livro>
+
+    parametros:
+    id_livro
+
+    resposta JSON:
+
+    :param id_livro:
+    :return:
+    """
     livro = db_session.execute(select(Livro).where(Livro.id_livro == id_livro)).scalar()
 
     if livro is None:
@@ -152,6 +272,20 @@ def editar_livro(id_livro):
 
 @app.route("/editar_emprestimo/<int:id_emprestimo>", methods=['PUT'])
 def editar_emprestimo(id_emprestimo):
+    """
+    Editar Emprestimo
+
+    Endpoint:
+    PUT /editar_emprestimo/<id_emprestimo>
+
+    parametros:
+    id_emprestimo
+
+    resposta JSON:
+
+    :param id_emprestimo:
+    :return:
+    """
     emprestimo = db_session.execute(select(Emprestimo).where(Livro.id_livro == id_emprestimo)).scalar()
 
     if emprestimo is None:
@@ -183,6 +317,32 @@ def deletar_usuario(id_usuario):
         return jsonify({"message": "Usuário excluído com sucesso"}), 200
     except Exception as e:
         return jsonify({"message": f"Erro ao excluir usuário: {str(e)}"}), 500
+
+@app.route("/deletar_livro/<int:id_livro>", methods=['DELETE'])
+def deletar_livro(id_livro):
+    try:
+        livro = db_session.query(Livro).get(id_livro)
+        if not livro:
+            return jsonify({"message": "Livro não encontrado"}), 404
+
+        db_session.delete(livro)
+        db_session.commit()
+        return jsonify({"message": "Livro excluído com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"message": f"Erro ao excluir o livro: {str(e)}"}), 500
+
+@app.route("/deletar_emprestimo/<int:id_emprestimo>", methods=['DELETE'])
+def deletar_emprestimo(id_emprestimo):
+    try:
+        emprestimo = db_session.query(Usuario).get(id_emprestimo)
+        if not emprestimo:
+            return jsonify({"message": "Emprestimo não encontrado"}), 404
+
+        db_session.delete(emprestimo)
+        db_session.commit()
+        return jsonify({"message": "Emprestimo excluído com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"message": f"Erro ao excluir emprestimo: {str(e)}"}), 500
 
 
 
